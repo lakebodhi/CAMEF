@@ -64,6 +64,7 @@ We utilized the **LLaMA-3** language model to generate **10 counterfactual versi
 
 The dataset is organized under the `events/` directory, which contains both **preprocessed** and **raw** event files:
 
+```
 events/
 ├── processed_events_and_counterfactuals/
 │ ├── 1/ ← FOMC Minutes
@@ -86,7 +87,7 @@ events/
 │ ├── raw/ ← Original raw HTML/text files
 │ ├── html_process/ ← HTML parsing scripts and intermediate outputs
 │ └── test/ ← Test files and examples
-
+```
 
 ---
 
