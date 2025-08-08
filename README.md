@@ -4,7 +4,8 @@
 It was accepted at **KDD 2025**.
 
 - 📄 [arXiv Paper](https://arxiv.org/abs/2502.04592)
-- 📊 [Poster (PPT)](https://github.com/lakebodhi/CAMEF/blob/main/resources/CAMEF_KDD2025_Poster.pdf)
+- 📊 [Poster](https://github.com/lakebodhi/CAMEF/blob/main/resources/CAMEF_Poster.pdf)
+- 📊 [Slides](https://github.com/lakebodhi/CAMEF/blob/main/resources/CAMEF_Slides.pdf)
 - 📚 Citation (BibTeX):
   ```bibtex
   @inproceedings{10.1145/3711896.3736872,
