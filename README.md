@@ -24,3 +24,39 @@ It was accepted at **KDD 2025**.
     location = {Toronto ON, Canada},
     series = {KDD '25}
   }
+
+
+## 📦 Dataset Access
+
+We provide the processed **CAMEF dataset**, which includes both **raw** and **cleaned** versions of key macroeconomic announcements and high-frequency financial time-series data spanning from **2004 to 2024**.
+
+### 📰 Macroeconomic Policy Texts
+
+Six types of macroeconomic announcements:
+
+- FOMC Minutes  
+- Unemployment Insurance Claims  
+- Employment Situation Reports  
+- GDP Advance Releases  
+- Consumer Price Index (CPI) Reports  
+- Producer Price Index (PPI) Reports  
+
+### 📈 Time-Series Financial Data
+
+High-frequency (5-minute level) trading data for five major U.S. financial assets:
+
+- S&P 500 Index  
+- NASDAQ 100 Index  
+- Dow Jones Industrial Average (DJIA)  
+- U.S. 1-Month Treasury Yield  
+- U.S. 10‑Year Treasury Yield  
+
+### Generated Counterfactual Policy Texts:
+
+We leveraged LLAMA-3 model with design prompt to generate 10 counterfactual events for each policy text by varying the sentiment level
+
+📁 [Download the dataset from Google Drive](https://drive.google.com/your-dataset-link)  
+📝 **Source**: All data are collected from publicly available government and financial databases. The full data preprocessing pipeline is included in this repository under `/data_preprocessing/`.
+
+The folder structure is as the following 
+
