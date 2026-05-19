@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 from datetime import datetime
 from collections import defaultdict
-
+import glob
 class data_set(Dataset):
     def __init__(self, list):
         self.list = list
@@ -29,7 +29,12 @@ class data_set_new(Dataset):
         return len(self.list)
 
     def __getitem__(self, id):
-        full_summary_file, sent_reports_files, negative_samples_on_type_files, seq_data, pred_data, scale_seq_data, scaled_pred_data = self.list[id]
+        item = self.list[id]
+        # Support both 7-element (legacy) and 8-element (with event_type) formats; always return 7 for backward compat
+        if len(item) == 8:
+            full_summary_file, sent_reports_files, negative_samples_on_type_files, seq_data, pred_data, event_type, scale_seq_data, scaled_pred_data = item
+        else:
+            full_summary_file, sent_reports_files, negative_samples_on_type_files, seq_data, pred_data, scale_seq_data, scaled_pred_data = item
         with open(full_summary_file, 'r', encoding='utf-8', errors='ignore') as f:
             full_summary = f.read()
         sent_reports = []
@@ -57,6 +62,7 @@ class event_set(object):
                  event_dir='data/event',
                  series_dir='data/series',
                  scale=True,
+                 split_by_time=False,
                  ):
 
         self.seq_len = seq_len
@@ -108,25 +114,37 @@ class event_set(object):
 
                         # Now gather the sent report files from 0 to 10
                         sent_reports = []
+                        # for i in range(11):  # from sent0 to sent10
+                        #     sent_file = f"{date[:-6]}.txt_report_sent{i}.txt"
+                        #     sent_path = os.path.join(event_folder, sent_file)
+                        #     if os.path.exists(sent_path):
+                        #         sent_reports.append(sent_path)
+                        # # if len(sent_reports) != 10:
+                        # #     print("Warning sent reports, checking file: ", full_summary_path)
+                        # print(len(sent_reports))
                         for i in range(11):  # from sent0 to sent10
-                            sent_file = f"{date[:-6]}.txt_report_sent{i}.txt"
-                            sent_path = os.path.join(event_folder, sent_file)
-                            if os.path.exists(sent_path):
+                            pattern = os.path.join(event_folder, f"????????.txt_report_sent{i}.txt")
+                            matches = glob.glob(pattern)
+                            if matches:
+                                sent_path = max(matches, key=os.path.getmtime)
                                 sent_reports.append(sent_path)
-                        # if len(sent_reports) != 10:
-                        #     print("Warning sent reports, checking file: ", full_summary_path)
-                        #     print(len(sent_reports))
+                        if len(sent_reports)!=10:
+                            sent_reports = sent_reports[:10]
                         nagative_samples_on_type = self.negative_event_based_on_type(date, event_type, event_folder, n=5)
-                        # Append the main summary and sent reports together
-                        event_files.append([date, full_summary_path, sent_reports, nagative_samples_on_type])
+                        # Append the main summary and sent reports together (event_type for gate-openness experiments)
+                        event_files.append([date, full_summary_path, sent_reports, nagative_samples_on_type, event_type])
 
         if len(event_files) < 10:
             print('Not enough event data found')
             exit(0)
 
+        # If split_by_time: sort events chronologically so train/vali/test are first/mid/last in time
+        if split_by_time:
+            event_files.sort(key=lambda x: int(x[0]))
+
         # Process the time series data and append event information
         self.data = []
-        for date, full_summary, sent_reports, nagative_samples_on_type in event_files:
+        for date, full_summary, sent_reports, nagative_samples_on_type, event_type in event_files:
             id = self.b_search(int(date), self.dates)
             if id < seq_len - 1 or id + pred_len - 1 > len(self.dates):
                 continue
@@ -135,13 +153,14 @@ class event_set(object):
                     raw_df.iloc[id - seq_len + 1: id + 1].drop(columns=['date', 'date_int']).to_numpy())
                 pred_data = from_numpy(
                     raw_df.iloc[id + 1:id + pred_len + 1].drop(columns=['date', 'date_int']).to_numpy())
-                self.data.append([full_summary, sent_reports, nagative_samples_on_type, seq_data, pred_data])
+                self.data.append([full_summary, sent_reports, nagative_samples_on_type, seq_data, pred_data, event_type])
 
-        if shuffle:
+        # When splitting by time, do not shuffle so that borders are chronological (first 60% / next 20% / last 20%)
+        if not split_by_time and shuffle:
             random.shuffle(self.data)
 
         self.d = raw_df.shape[1] - 2
-        ratio = [0.6, 0.2, 0.2]
+        ratio = [0.6, 0.2, 0.2]  # train : test : vali
         n = len(self.data)
         border1 = [0, int(ratio[0] * n), int((ratio[0] + ratio[1]) * n)]
         border2 = [int(ratio[0] * n), int((ratio[0] + ratio[1]) * n), n]
@@ -159,7 +178,8 @@ class event_set(object):
         self.train_set, self.train_loader = self.get_data(self.data[border1[0]: border2[0]], batch_size)
         self.test_set, self.test_loader = self.get_data(self.data[border1[1]: border2[1]], batch_size)
         self.vali_set, self.vali_loader = self.get_data(self.data[border1[2]: border2[2]], batch_size)
-        print(f"Data Loaded: TRAIN: {len(self.train_set)}, VALI: {len(self.vali_set)}, TEST: {len(self.test_set)}")
+        split_mode = "by time (6:2:2)" if split_by_time else "by index (6:2:2, shuffle={})".format(shuffle)
+        print(f"Data Loaded: TRAIN: {len(self.train_set)}, VALI: {len(self.vali_set)}, TEST: {len(self.test_set)} [split: {split_mode}]")
 
 
 
@@ -291,7 +311,7 @@ class event_set(object):
 
         return closest_dates
 
-    def get_data(self, data, batch_size, num_workers=8):
+    def get_data(self, data, batch_size, num_workers=15):
         dataset = data_set_new(data)
         dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=num_workers)
         return dataset, dataloader
