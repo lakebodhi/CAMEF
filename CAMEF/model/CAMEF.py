@@ -21,9 +21,9 @@ warnings.filterwarnings("ignore", category=UserWarning,
                         message="torch.utils._pytree._register_pytree_node is deprecated")
 
 
-class GPT4MTS(nn.Module):
+class CAMEF(nn.Module):
     def __init__(self, bert, moment, gpt, seq_len, pred_len, d, window, stride, batch_size):
-        super(GPT4MTS, self).__init__()
+        super(CAMEF, self).__init__()
 
         self.seq_len, self.pred_len = seq_len, pred_len
         self.window, self.stride = window, stride
@@ -58,7 +58,6 @@ class GPT4MTS(nn.Module):
                 'task_name': 'embedding',
             },
             cache_dir=r'moment_model',
-            local_files_only=True,
         ).to(self.device)
         self.moment_model.init()
         # print(self.moment_model)
@@ -335,6 +334,36 @@ class GPT4MTS(nn.Module):
         tokenizer_save_dir = os.path.join(os.path.dirname(save_path), 'tokenizer')
         self.tokenizer.save_pretrained(tokenizer_save_dir)
         print(f"Tokenizer saved successfully to {tokenizer_save_dir}")
+
+    # def load_model_combined(self, save_path="model_checkpoint.pth", optimizer=None, **kwargs):
+    #     """
+    #     Load a combined model (e.g., GPT-2, MOMENT, RoBERTa, etc.), tokenizer, and optimizer from a checkpoint.
+    #
+    #     Parameters:
+    #         self (torch.nn.Module): The empty model to load into.
+    #         save_path (str): Path to the checkpoint.
+    #     """
+    #     checkpoint = torch.load(save_path)
+    #
+    #     # Load individual models' state dicts
+    #     self.gpt_model.load_state_dict(checkpoint['gpt_state_dict'])
+    #     self.gpt_model.ln_f.load_state_dict(checkpoint['gpt_ln_f_state_dict'])
+    #     self.moment_model.load_state_dict(checkpoint['moment_state_dict'])
+    #     self.bert_model.load_state_dict(checkpoint['bert_state_dict'])
+    #     self.bert_linear.load_state_dict(checkpoint['bert_linear_state_dict'])
+    #     self.embed_project.load_state_dict(checkpoint['embed_project_state_dict'])
+    #     self.fuse_project.load_state_dict(checkpoint['fuse_project_state_dict'])
+    #     self.output_project.load_state_dict(checkpoint['output_project_state_dict'])
+    #     self.residual_project.load_state_dict(checkpoint['residual_project_state_dict'])
+    #
+    #     # Load the tokenizer
+    #     save_folder_path = Path(save_path).parent
+    #     tokenizer_path = os.path.join(save_folder_path,"tokenizer")
+    #     self.tokenizer =RobertaTokenizer.from_pretrained(tokenizer_path)
+    #
+    #     print(f"Model loaded successfully from {save_path}")
+    #     return self
+
 
     def load_model_combined(self, save_path="model_checkpoint.pth", optimizer=None, **kwargs):
         """
