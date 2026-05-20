@@ -3,6 +3,7 @@
 **CAMEF** is a novel framework for forecasting financial market trends by integrating **time-series data** and **macroeconomic policy texts**, enhanced by **causal learning through LLM-generated counterfactuals**.
 It was accepted at **KDD 2025**.
 
+- 📄 [Proceedings Paper](https://dl.acm.org/doi/10.1145/3711896.3736872)
 - 📄 [arXiv Paper](https://arxiv.org/abs/2502.04592)
 - 📊 [Poster](https://github.com/lakebodhi/CAMEF/blob/main/resources/CAMEF_Poster.pdf)
 - 📊 [Slides](https://github.com/lakebodhi/CAMEF/blob/main/resources/CAMEF_Slides.pdf)
