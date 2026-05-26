@@ -215,7 +215,7 @@ python train.py \
   --seq-len 35 \
   --pred-len 35 \
   --batch-size 10 \
-  --epochs 5 \
+  --epochs 10 \
   --output-path outputs/sp500_len35
 ```
 
