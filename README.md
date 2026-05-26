@@ -227,8 +227,5 @@ Training writes:
 - `outputs/sp500_len35/tokenizer/`
 
 Useful options:
-
-- `--shuffle`: shuffle event samples before splitting.
-- `--split-by-time`: use chronological train/test/validation splits.
 - `--bert-model`: use a local RoBERTa path instead of the Hugging Face id.
 - `--gpt-model`: use a local GPT-2 path instead of the Hugging Face id.
